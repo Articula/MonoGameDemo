@@ -38,3 +38,17 @@ Thumbs.db
 
 # Specifics #
 ######################
+.vs/
+[Bb]in/
+[Oo]bj/
+[Xx]64/
+[Xx]86/
+[Pp]roperties/
+Content/bin/
+Content/obj/
+Content/resources/oldImages/
+app.manifest
+*.xcf
+*.mgcb
+MonoGameDemo.csproj
+MonoGameDemo.sln

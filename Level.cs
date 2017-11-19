@@ -20,7 +20,11 @@ namespace MonoGameDemo
 		public SpriteBatch spriteBatch;
 		public static Level currentLevel { get; private set; }
 		private Random rnd = new Random();
-		public event EventHandler<HealthChangeEventArgs> HealthChangeEvent;
+
+        // TODO: Seperate into two quadtrees when there are drawable but not collidable objects
+        private QuadTree<IQuadStorable> quadTree;
+
+        public event EventHandler<HealthChangeEventArgs> HealthChangeEvent;
 
 		public Level(SpriteBatch spriteBatch, Texture2D tileTexture, Texture2D ptTexture, Texture2D enemyTexture, Texture2D gemTexture, int columns, int rows)
 		{
@@ -31,13 +35,15 @@ namespace MonoGameDemo
 			this.enemyTexture = enemyTexture;
             this.gemTexture = gemTexture;
 			this.spriteBatch = spriteBatch;
-			CreateNewLevel();
+            this.quadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
+            CreateNewLevel();
 			Level.currentLevel = this;
 		}
 
 		public void CreateNewLevel()
 		{
-			InitializeTiles();
+            quadTree.Clear();
+            InitializeTiles();
 			InitializeBorderTiles();
 			GeneratePassThroughTile();
 			InitializeEnemies();
@@ -58,9 +64,10 @@ namespace MonoGameDemo
 				{
 					Vector2 tilePosition =
 						new Vector2(x * tileTexture.Width, y * tileTexture.Height);
-					this.tiles[x, y] =
-							new Tile(tileTexture, tilePosition, spriteBatch, rnd.Next(5) == 0);
-				}
+                    Tile tile = new Tile(tileTexture, tilePosition, spriteBatch, rnd.Next(5) == 0);
+                    this.tiles[x, y] = tile;
+                    quadTree.Add(tile);
+                }
 
 			}
 
@@ -96,18 +103,20 @@ namespace MonoGameDemo
 			//Generate a passthrough Tile
 			Vector2 passthroughTilePosition =
 				new Vector2(4 * tileTexture.Width, 3 * tileTexture.Height);
+            Tile tile = new Tile(passthroughTileTexture, passthroughTilePosition, spriteBatch, true, true);
+            this.tiles[4, 3] = tile;
+            quadTree.Add(tile);
 
-			this.tiles[4, 3] =
-							new Tile(passthroughTileTexture, passthroughTilePosition, spriteBatch, true, true);
-
-			tiles[4, 4].isVisible = false;
+            tiles[4, 4].isVisible = false;
 		}
 
 		void InitializeEnemies()
 		{
 			this.enemies = new Enemy[1];
-			enemies[0] = new Enemy(enemyTexture, new Vector2(240, 80), spriteBatch);
-		}
+            Enemy enemy = new Enemy(enemyTexture, new Vector2(240, 80), spriteBatch);
+            enemies[0] = enemy;
+            quadTree.Add(enemy);
+        }
 
 		void InitializeCollectables()
 		{
@@ -117,47 +126,52 @@ namespace MonoGameDemo
 		//TODO: Remove this after testing
 		void SetGems()
 		{
-			tiles[5, 8].isVisible = false;
-			tiles[10, 5].isVisible = false;
-			tiles[7, 3].isVisible = false;
+            for (int i = 8; i < 19; i++)
+            {
+                tiles[5, i].isVisible = false;
+            }
+            tiles[10, 5].isVisible = false;
+            tiles[7, 3].isVisible = false;
+            tiles[17, 8].isVisible = false;
 
-			Vector2 gem1Position =
-						new Vector2(5 * tileTexture.Width, 8 * tileTexture.Height);
-			Vector2 gem2Position =
-						new Vector2(10 * tileTexture.Width, 5 * tileTexture.Height);
-			Vector2 gem3Position =
-						new Vector2(7 * tileTexture.Width, 3 * tileTexture.Height);
-			
-			this.collectables.Add(new Gem(gemTexture, gem1Position, spriteBatch));
+            Vector2 gem1Position =
+                        new Vector2(5 * tileTexture.Width, 8 * tileTexture.Height);
+            Vector2 gem2Position =
+                       new Vector2(10 * tileTexture.Width, 5 * tileTexture.Height);
+            Vector2 gem3Position =
+                        new Vector2(7 * tileTexture.Width, 3 * tileTexture.Height);
+            Vector2 gem4Position =
+                        new Vector2(17 * tileTexture.Width, 8 * tileTexture.Height);
+
+            this.collectables.Add(new Gem(gemTexture, gem1Position, spriteBatch));
             this.collectables.Add(new Gem(gemTexture, gem2Position, spriteBatch));
             this.collectables.Add(new Gem(gemTexture, gem3Position, spriteBatch));
-		}
+            this.collectables.Add(new Gem(gemTexture, gem4Position, spriteBatch));
+
+            for (int i = 0; i < collectables.Count; i++)
+            {
+                quadTree.Add((IQuadStorable)collectables[i]);
+            }
+        }
 
 		private void SetTopLeftTileUnblocked()
 		{
 			tiles[1, 1].isVisible = false;
 		}
 
-		public void Draw()
+		public void Draw(Camera camera)
 		{
-			foreach (var tile in this.tiles)
-			{
-				tile.Draw();
-			}
+            // Get all QuadTree items in camera coordinates
+            List<IQuadStorable> itemsToDraw = quadTree.GetObjects(camera.GetCameraRect());
 
-			foreach (var enemy in this.enemies)
-			{
-                if (enemy.isVisible)
+            foreach (IQuadStorable obj in itemsToDraw)
+            {
+                if (obj is Sprite)
                 {
-                    enemy.Draw();
+                    ((Sprite)obj).Draw();
                 }
-			}
-
-			foreach (var collectable in this.collectables)
-			{
-				collectable.Draw();
-			}
-		}
+            }
+        }
 
 		public void Update(GameTime gameTime)
 		{
@@ -171,7 +185,8 @@ namespace MonoGameDemo
 				if (collectable.GetType() == typeof(Gem))
 				{
 					((Gem)collectable).Update(gameTime);
-				}
+                    quadTree.Move((IQuadStorable)collectable);
+                }
 			}
 		}
 

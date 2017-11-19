@@ -45,5 +45,10 @@ namespace MonoGameDemo
 
 			viewMatrix = Matrix.CreateTranslation(new Vector3(-position, 0));
 		}
-	}
+
+        public Rectangle GetCameraRect()
+        {
+            return new Rectangle((int)position.X, (int)position.Y, (int)screenWidth, (int)screenHeight);
+        }
+    }
 }

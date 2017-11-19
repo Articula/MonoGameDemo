@@ -163,7 +163,7 @@ namespace MonoGameDemo
 			spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, 
 			                  null, null, null, null, camera.ViewMatrix);
 			base.Draw(gameTime);
-			gameLevel.Draw();
+			gameLevel.Draw(camera);
 			player.Draw();
 
 			spriteBatch.End();

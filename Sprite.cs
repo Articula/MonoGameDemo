@@ -4,8 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoGameDemo
 {
-	public class Sprite
-	{
+	public class Sprite : IQuadStorable
+    {
 		public Vector2 position { get; set; }
 		public Texture2D texture { get; set; }
 		public SpriteBatch spriteBatch { get; set; }

@@ -63,7 +63,7 @@ namespace MonoGameDemo
 			gemTexture = Content.Load<Texture2D>("resources/gem");
 			heartTexture = Content.Load<Texture2D>("resources/heart");
 			//TODO: Change how all these textures get loaded
-			gameLevel = new Level(spriteBatch, tileTexture, passthroughTileTexture, enemyTexture, gemTexture, 30, 20);
+			gameLevel = new Level(camera, spriteBatch, tileTexture, passthroughTileTexture, enemyTexture, gemTexture, 30, 20);
 			player = new Player(playerTexture, new Vector2(80, 80), spriteBatch);
 			healthBar = new HealthBar(spriteBatch, player.health, heartTexture);
 		}
@@ -163,7 +163,7 @@ namespace MonoGameDemo
 			spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, 
 			                  null, null, null, null, camera.ViewMatrix);
 			base.Draw(gameTime);
-			gameLevel.Draw(camera);
+			gameLevel.Draw();
 			player.Draw();
 
 			spriteBatch.End();

@@ -70,7 +70,7 @@ namespace MonoGameDemo
 			}
 		}
 
-		public new void Update(GameTime gameTime)
+		public override void Update(GameTime gameTime)
 		{
 			CheckMovementFlagsAndUpdate();
 			if (invulnerableFlag)

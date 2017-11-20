@@ -8,7 +8,7 @@ namespace MonoGameDemo
 	public class Level
 	{
 		public Tile[,] tiles;
-		public Enemy[] enemies;
+		public List<Enemy> enemies;
         public List<ICollectable> collectables;
 
         public int columns;
@@ -20,37 +20,41 @@ namespace MonoGameDemo
 		public SpriteBatch spriteBatch;
 		public static Level currentLevel { get; private set; }
 		private Random rnd = new Random();
+        private Camera camera;
 
-        // TODO: Seperate into two quadtrees when there are drawable but not collidable objects
-        private QuadTree<IQuadStorable> quadTree;
+        private QuadTree<IQuadStorable> tileQuadTree;
+        private QuadTree<IQuadStorable> actorQuadTree;
 
         public event EventHandler<HealthChangeEventArgs> HealthChangeEvent;
 
-		public Level(SpriteBatch spriteBatch, Texture2D tileTexture, Texture2D ptTexture, Texture2D enemyTexture, Texture2D gemTexture, int columns, int rows)
+		public Level(Camera levelCamera, SpriteBatch spriteBatch, Texture2D tileTexture, Texture2D ptTexture, Texture2D enemyTexture, Texture2D gemTexture, int columns, int rows)
 		{
-			this.columns = columns;
+            camera = levelCamera;
+            this.columns = columns;
 			this.rows = rows;
 			this.tileTexture = tileTexture;
 			this.passthroughTileTexture = ptTexture;
 			this.enemyTexture = enemyTexture;
             this.gemTexture = gemTexture;
 			this.spriteBatch = spriteBatch;
-            this.quadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
+            this.tileQuadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
+            this.actorQuadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
             CreateNewLevel();
 			Level.currentLevel = this;
 		}
 
 		public void CreateNewLevel()
 		{
-            quadTree.Clear();
+            tileQuadTree.Clear();
+            actorQuadTree.Clear();
             InitializeTiles();
 			InitializeBorderTiles();
 			GeneratePassThroughTile();
-			InitializeEnemies();
 			SetTopLeftTileUnblocked();
-            InitializeCollectables();
+            InitializeLevelLists();
+            InitializeEnemies();
 
-			SetGems();
+            SetGems();
 		}
 
 		void InitializeTiles()
@@ -66,7 +70,7 @@ namespace MonoGameDemo
 						new Vector2(x * tileTexture.Width, y * tileTexture.Height);
                     Tile tile = new Tile(tileTexture, tilePosition, spriteBatch, rnd.Next(5) == 0);
                     this.tiles[x, y] = tile;
-                    quadTree.Add(tile);
+                    tileQuadTree.Add(tile);
                 }
 
 			}
@@ -104,23 +108,24 @@ namespace MonoGameDemo
 			Vector2 passthroughTilePosition =
 				new Vector2(4 * tileTexture.Width, 3 * tileTexture.Height);
             Tile tile = new Tile(passthroughTileTexture, passthroughTilePosition, spriteBatch, true, true);
+            tileQuadTree.Remove(this.tiles[4, 3]);
             this.tiles[4, 3] = tile;
-            quadTree.Add(tile);
+            tileQuadTree.Add(tile);
 
             tiles[4, 4].isVisible = false;
 		}
 
 		void InitializeEnemies()
 		{
-			this.enemies = new Enemy[1];
             Enemy enemy = new Enemy(enemyTexture, new Vector2(240, 80), spriteBatch);
-            enemies[0] = enemy;
-            quadTree.Add(enemy);
+            this.enemies.Add(enemy);
+            actorQuadTree.Add(enemy);
         }
 
-		void InitializeCollectables()
+		void InitializeLevelLists()
 		{
 			this.collectables = new List<ICollectable>();
+            this.enemies = new List<Enemy>();
 		}
 
 		//TODO: Remove this after testing
@@ -150,7 +155,7 @@ namespace MonoGameDemo
 
             for (int i = 0; i < collectables.Count; i++)
             {
-                quadTree.Add((IQuadStorable)collectables[i]);
+                actorQuadTree.Add((IQuadStorable)collectables[i]);
             }
         }
 
@@ -159,16 +164,25 @@ namespace MonoGameDemo
 			tiles[1, 1].isVisible = false;
 		}
 
-		public void Draw(Camera camera)
+		public void Draw()
 		{
             // Get all QuadTree items in camera coordinates
-            List<IQuadStorable> itemsToDraw = quadTree.GetObjects(camera.GetCameraRect());
+            List<IQuadStorable> tilesToDraw = tileQuadTree.GetObjects(camera.GetCameraRect());
+            List<IQuadStorable> actorsToDraw = actorQuadTree.GetObjects(camera.GetCameraRect());
 
-            foreach (IQuadStorable obj in itemsToDraw)
+            foreach (IQuadStorable obj in tilesToDraw)
             {
-                if (obj is Sprite)
+                if (obj is Tile)
                 {
-                    ((Sprite)obj).Draw();
+                    ((Tile)obj).Draw();
+                }
+            }
+
+            foreach (IQuadStorable obj in actorsToDraw)
+            {
+                if (obj is Actor)
+                {
+                    ((Actor)obj).Draw();
                 }
             }
         }
@@ -185,7 +199,9 @@ namespace MonoGameDemo
 				if (collectable.GetType() == typeof(Gem))
 				{
 					((Gem)collectable).Update(gameTime);
-                    quadTree.Move((IQuadStorable)collectable);
+
+                    //TODO: Only do this is the Gem has actually moved
+                    actorQuadTree.Move((IQuadStorable)collectable);
                 }
 			}
 		}
@@ -218,11 +234,13 @@ namespace MonoGameDemo
 		/* TODO: Consider adding 4-8 rectangles within each tile for more accurate collision detection */
 		public bool HasRoomForRectangle(Rectangle rectangleToCheck, bool isMovingUp = false)
 		{
-			foreach (var tile in tiles)
+            Rectangle checkArea = CreateCollisionCheckZone(rectangleToCheck);
+            List<IQuadStorable> tilesCloseToActor = tileQuadTree.GetObjects(checkArea);
+            foreach (IQuadStorable tile in tilesCloseToActor)
 			{
-				if (tile.isVisible && tile.boundry.Intersects(rectangleToCheck))
+				if (((Tile)tile).isVisible && tile.boundry.Intersects(rectangleToCheck))
 				{
-					if (tile.isPassable) 
+					if (((Tile)tile).isPassable) 
 					{
 						if (rectangleToCheck.Bottom == tile.boundry.Top + 1 && !isMovingUp)
 						{
@@ -241,6 +259,15 @@ namespace MonoGameDemo
 			}
 			return true;
 		}
+
+        private Rectangle CreateCollisionCheckZone (Rectangle actorArea)
+        {
+            int x = (actorArea.X - tileTexture.Width >= 0) ? actorArea.X - tileTexture.Width : 0;
+            int y = (actorArea.Y - tileTexture.Height >= 0) ? actorArea.Y - tileTexture.Height : 0;
+            int width = (actorArea.Width + (tileTexture.Width*2) <= 1920) ? actorArea.Width + (tileTexture.Width*2) : 1920; //TODO: Magic Numbers...
+            int height = (actorArea.Height + (tileTexture.Height*2) <= 1280) ? actorArea.Height + (tileTexture.Height*2) : 1280;
+            return new Rectangle(x, y, width, height);
+        }
 
 		private Rectangle CreateRectangleAtPosition(Vector2 positionToTry, int width, int height)
 		{
@@ -265,42 +292,53 @@ namespace MonoGameDemo
 			return movementStruct.furthestAvailableLocationSoFar;
 		}
 
-		/* TODO: Update Collision Detection (QuadTrees)*/
 		public void CheckItemCollision(Player player)
 		{
-			foreach (var collectable in this.collectables)
+            Rectangle checkArea = CreateCollisionCheckZone(player.boundry);
+            List<IQuadStorable> itemsCloseToActor = actorQuadTree.GetObjects(checkArea);
+            foreach (IQuadStorable obj in itemsCloseToActor)
 			{
-				if (collectable.isVisible && collectable.boundry.Intersects(player.boundry))
-				{
-					collectable.isVisible = false; //TODO: Delete from list pls
-					player.AddToInventory(collectable);
-				}
-			}
-
-			foreach (var enemy in this.enemies)
-			{
-                if (enemy.isVisible)
+                if (obj is ICollectable)
                 {
-                    /* TODO: Consider adding 4-8 rectangles within each enemy for more accurate collision detection */
-                    if (enemy.boundry.Intersects(player.boundry))
+                    if (((Sprite)obj).isVisible && obj.boundry.Intersects(player.boundry))
                     {
-                        //Determine whether this was contact from the top (enemy kill), else take damage
-
-                        if (!player.invulnerableFlag)
-                        {
-                            MovementStruct move = new MovementStruct(player.oldPosition, player.position, player.boundry);
-                            if (player.boundry.Bottom == enemy.boundry.Top + 1 && !move.isMovingUp)
-                            {
-                                enemy.isVisible = false;
-                            }
-                            else
-                            {
-                                this.HealthChangeEvent.Invoke(this, new HealthChangeEventArgs(false, 1));
-                            }
-                        }
+                        ((Sprite)obj).isVisible = false;
+                        collectables.Remove((ICollectable)obj);
+                        actorQuadTree.Remove(obj);
+                        player.AddToInventory((ICollectable)obj);
                     }
+                }
+                else if (obj.GetType() == typeof(Enemy))
+                {
+                    EnemyCollision((Enemy)obj, player);
                 }
 			}
 		}
+
+        public void EnemyCollision(Enemy enemy, Player player)
+        {
+            if (enemy.isVisible)
+            {
+                /* TODO: Consider adding 4-8 rectangles within each enemy for more accurate collision detection */
+                if (enemy.boundry.Intersects(player.boundry))
+                {
+                    //Determine whether this was contact from the top (enemy kill), else take damage
+                    MovementStruct move = new MovementStruct(player.oldPosition, player.position, player.boundry);
+                    if (player.boundry.Bottom == enemy.boundry.Top + 1 && !move.isMovingUp)
+                    {
+                        enemy.isVisible = false;
+                        enemies.Remove(enemy);
+                        actorQuadTree.Remove(enemy);
+                    }
+                    else
+                    {
+                        if (!player.invulnerableFlag)
+                        {
+                            this.HealthChangeEvent.Invoke(this, new HealthChangeEventArgs(false, 1));
+                        }
+                    }
+                }
+            }
+        }
 	}
 }

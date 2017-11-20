@@ -14,7 +14,7 @@ namespace MonoGameDemo
             oldPosition = position;
 		}
 
-		public void Update(GameTime gameTime)
+		public virtual void Update(GameTime gameTime)
 		{
 			AffectWithGravity();
 			SimulateFriction();

@@ -8,7 +8,7 @@ namespace MonoGameDemo
 	{
 		public Enemy(Texture2D texture, Vector2 position, SpriteBatch batch) : base (texture, position, batch)
 		{
-            isVisible = true;
+            this.isVisible = true;
 		}
 	}
 }

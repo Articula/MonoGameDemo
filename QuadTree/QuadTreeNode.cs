@@ -207,13 +207,13 @@ namespace MonoGameDemo
                         formerOwner.CleanUpwards();
                     }
                 }
-                else
+            }
+            else
+            {
+                // We don't fit here anymore, move up if we can
+                if (parent != null)
                 {
-                    // We don't fit here anymore, move up if we can
-                    if (parent != null)
-                    {
-                        parent.Relocate(item);
-                    }
+                    parent.Relocate(item);
                 }
             }
         }

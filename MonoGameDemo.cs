@@ -15,7 +15,7 @@ namespace MonoGameDemo
 		private GraphicsDeviceManager graphics;
 		private SpriteBatch spriteBatch;
 		private Camera camera;
-		private Texture2D tileTexture, passthroughTileTexture, playerTexture, enemyTexture, gemTexture, heartTexture;
+		private Texture2D tileTexture, passthroughTileTexture, playerTexture, enemyTexture, gemTexture, heartTexture, halfHeartTexture, emptyHeartTexture;
 		private Player player;
 		public Level gameLevel;
 		public HealthBar healthBar;
@@ -62,10 +62,12 @@ namespace MonoGameDemo
 			enemyTexture = Content.Load<Texture2D>("resources/baddie");
 			gemTexture = Content.Load<Texture2D>("resources/gem");
 			heartTexture = Content.Load<Texture2D>("resources/heart");
-			//TODO: Change how all these textures get loaded
-			gameLevel = new Level(camera, spriteBatch, tileTexture, passthroughTileTexture, enemyTexture, gemTexture, 30, 20);
+            halfHeartTexture = Content.Load<Texture2D>("resources/halfheart");
+            emptyHeartTexture = Content.Load<Texture2D>("resources/emptyheart");
+            //TODO: Change how all these textures get loaded
+            gameLevel = new Level(camera, spriteBatch, tileTexture, passthroughTileTexture, enemyTexture, gemTexture, 30, 20);
 			player = new Player(playerTexture, new Vector2(80, 80), spriteBatch);
-			healthBar = new HealthBar(spriteBatch, player.health, heartTexture);
+			healthBar = new HealthBar(spriteBatch, player.health, heartTexture, halfHeartTexture, emptyHeartTexture);
 		}
 
 		/// <summary>

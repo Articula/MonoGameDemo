@@ -8,7 +8,7 @@ namespace MonoGameDemo
 {
 	public class Player : Actor
 	{
-		public int health = 3;
+		public int health = 6;
 		public Inventory inventory;
 		public bool invulnerableFlag = false;
 		private const int DefaultInvulnerableTime = 3;

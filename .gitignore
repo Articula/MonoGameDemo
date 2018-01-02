@@ -48,4 +48,6 @@ Content/obj/
 Content/resources/oldImages/
 *.xcf
 MonoGameDemo.csproj
+MonoGameDemo.csproj.user
 MonoGameDemo.sln
+app.config

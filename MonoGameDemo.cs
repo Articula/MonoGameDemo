@@ -41,7 +41,7 @@ namespace MonoGameDemo
 		/// </summary>
 		protected override void Initialize()
 		{
-			InitKeyboardMonitor(KeyboardMonitor.Instance);
+            InitInputHandler(InputHandler.Instance);
 			base.Initialize();
 		}
 
@@ -92,34 +92,34 @@ namespace MonoGameDemo
 				gameLevel.CheckItemCollision(player);
 
 			}
-			KeyboardMonitor.Instance.Update();
+            InputHandler.Instance.Update();
 		}
 
-		private void InitKeyboardMonitor(KeyboardMonitor keyboard)
-		{
-			keyboard.KeyPressedEvent += OnKeyPress;
-			keyboard.KeyReleasedEvent += OnKeyRelease;
-		}
+        private void InitInputHandler(InputHandler inputHandler)
+        {
+            inputHandler.InputPressedEvent += OnInputPress;
+            inputHandler.InputReleasedEvent += OnInputRelease;
+        }
 
-		private void OnKeyPress(object sender, KeyPressedEventArgs args)
-		{
-			switch (args.key)
-			{
-				case Keys.F5:
+        private void OnInputPress(object sender, InputPressedEventArgs args)
+        {
+            switch (args.action)
+            {
+                case InputAction.ResetLevel:
                     RestartGame();
-				break;
-				case Keys.Enter:
-                	HandleMenuButton();
-				break;
-			}
-		}
+                    break;
+                case InputAction.ToggleMenu:
+                    HandleMenuButton();
+                    break;
+            }
+        }
 
-		private void OnKeyRelease(object sender, KeyReleasedEventArgs args)
-		{
+        private void OnInputRelease(object sender, InputReleasedEventArgs args)
+        {
 
-		}
+        }
 
-		private void RestartGame()
+        private void RestartGame()
 		{
 			Level.currentLevel.CreateNewLevel();
 			PositionPlayer();

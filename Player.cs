@@ -20,44 +20,44 @@ namespace MonoGameDemo
 			: base(texture, position, batch)
 		{
 			inventory = new Inventory();
-			KeyboardMonitor.Instance.KeyPressedEvent += OnKeyPress;
-			KeyboardMonitor.Instance.KeyReleasedEvent += OnKeyRelease;
+            InputHandler.Instance.InputPressedEvent += OnInputPress;
+            InputHandler.Instance.InputReleasedEvent += OnInputRelease;
 			Level.currentLevel.HealthChangeEvent += OnHealthChange;
 		}
 
-		private void OnKeyPress(object sender, KeyPressedEventArgs args)
-		{
-			switch (args.key)
-			{
-				case Keys.Left:
-					leftPressed = true;
-					break;
-				case Keys.Right:
-					rightPressed = true;
-					break;
-				case Keys.Up:
-					if (IsOnFirmGround())
-					{
-						movement = -Vector2.UnitY * 25;
-					}
-					break;
-			}
-		}
+        private void OnInputPress(object sender, InputPressedEventArgs args)
+        {
+            switch (args.action)
+            {
+                case InputAction.MovementLeft:
+                    leftPressed = true;
+                    break;
+                case InputAction.MovementRight:
+                    rightPressed = true;
+                    break;
+                case InputAction.MovementJump:
+                    if (IsOnFirmGround())
+                    {
+                        movement = -Vector2.UnitY * 25;
+                    }
+                    break;
+            }
+        }
 
-		private void OnKeyRelease(object sender, KeyReleasedEventArgs args)
-		{
-			switch (args.key)
-			{
-				case Keys.Left:
-					leftPressed = false;
-					break;
-				case Keys.Right:
-					rightPressed = false;
-					break;
-			}
-		}
+        private void OnInputRelease(object sender, InputReleasedEventArgs args)
+        {
+            switch (args.action)
+            {
+                case InputAction.MovementLeft:
+                    leftPressed = false;
+                    break;
+                case InputAction.MovementRight:
+                    rightPressed = false;
+                    break;
+            }
+        }
 
-		private void OnHealthChange(object sender, HealthChangeEventArgs args)
+        private void OnHealthChange(object sender, HealthChangeEventArgs args)
 		{
 			if (args.isPositive)
 			{

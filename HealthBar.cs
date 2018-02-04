@@ -10,20 +10,16 @@ namespace MonoGameDemo
 	{
 		private SpriteBatch spriteBatch;
 		private int healthCount;
-		private Texture2D heartTexture;
-        private Texture2D halfTexture;
-        private Texture2D emptyTexture;
+		private Texture2D heartTexture = TextureFactory.Instance.getTexture(Texture.Heart);
+        private Texture2D halfTexture = TextureFactory.Instance.getTexture(Texture.HalfHeart);
+        private Texture2D emptyTexture = TextureFactory.Instance.getTexture(Texture.EmptyHeart);
         private int offsetX = 300;
         const int heartCount = 3;
 
-
-		public HealthBar(SpriteBatch batch, int health, Texture2D heartTexture, Texture2D halfHeartTexture, Texture2D emptyHeartTexture)
+		public HealthBar(SpriteBatch batch, int health)
 		{
 			spriteBatch = batch;
 			healthCount = health;
-			this.heartTexture = heartTexture;
-            halfTexture = halfHeartTexture;
-            emptyTexture = emptyHeartTexture;
 			Level.currentLevel.HealthChangeEvent += OnHealthChange;
 		}
 

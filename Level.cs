@@ -13,10 +13,10 @@ namespace MonoGameDemo
 
         public int columns;
 		public int rows;
-		public Texture2D tileTexture;
-		public Texture2D passthroughTileTexture;
-		public Texture2D enemyTexture;
-		public Texture2D gemTexture;
+		public Texture2D tileTexture = TextureFactory.Instance.getTexture(Texture.Tile);
+        public Texture2D passthroughTileTexture = TextureFactory.Instance.getTexture(Texture.PassThroughTile);
+        public Texture2D enemyTexture = TextureFactory.Instance.getTexture(Texture.Baddie);
+        public Texture2D gemTexture = TextureFactory.Instance.getTexture(Texture.Gem);
 		public SpriteBatch spriteBatch;
 		public static Level currentLevel { get; private set; }
 		private Random rnd = new Random();
@@ -27,15 +27,11 @@ namespace MonoGameDemo
 
         public event EventHandler<HealthChangeEventArgs> HealthChangeEvent;
 
-		public Level(Camera levelCamera, SpriteBatch spriteBatch, Texture2D tileTexture, Texture2D ptTexture, Texture2D enemyTexture, Texture2D gemTexture, int columns, int rows)
+		public Level(Camera levelCamera, SpriteBatch spriteBatch, int columns, int rows)
 		{
             camera = levelCamera;
             this.columns = columns;
 			this.rows = rows;
-			this.tileTexture = tileTexture;
-			this.passthroughTileTexture = ptTexture;
-			this.enemyTexture = enemyTexture;
-            this.gemTexture = gemTexture;
 			this.spriteBatch = spriteBatch;
             this.tileQuadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
             this.actorQuadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!

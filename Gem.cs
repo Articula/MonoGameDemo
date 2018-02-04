@@ -8,11 +8,12 @@ namespace MonoGameDemo
 	{
 		public ItemId itemId { get; }
 
-		public Gem(Texture2D texture, Vector2 position, SpriteBatch batch)
-			: base(texture, position, batch)
+		public Gem(Texture2D tex, Vector2 position, SpriteBatch batch)
+			: base(tex, position, batch)
 		{
-			this.itemId = ItemId.Gem;
-			this.isVisible = true;
+			itemId = ItemId.Gem;
+			isVisible = true;
+            texture = tex;
 		}
 
 		public override void Draw()

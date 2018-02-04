@@ -14,8 +14,8 @@ namespace MonoGameDemo
 		private Vector2 screenSize;
 		private GraphicsDeviceManager graphics;
 		private SpriteBatch spriteBatch;
+        private TextureFactory textureFactory;
 		private Camera camera;
-		private Texture2D tileTexture, passthroughTileTexture, playerTexture, enemyTexture, gemTexture, heartTexture, halfHeartTexture, emptyHeartTexture;
 		private Player player;
 		public Level gameLevel;
 		public HealthBar healthBar;
@@ -52,23 +52,22 @@ namespace MonoGameDemo
 		protected override void LoadContent()
 		{
 			spriteBatch = new SpriteBatch(GraphicsDevice);
+            SetUpTextureFactory();
 
 			_debugFont = Content.Load<SpriteFont>("resources/DebugFont");
 			camera = new Camera(screenSize);
 			inventoryScreen = new InventoryScreen(spriteBatch, GraphicsDevice, _debugFont);
-			tileTexture = Content.Load<Texture2D>("resources/tile");
-			passthroughTileTexture = Content.Load<Texture2D>("resources/passthroughTile");
-			playerTexture = Content.Load<Texture2D>("resources/player");
-			enemyTexture = Content.Load<Texture2D>("resources/baddie");
-			gemTexture = Content.Load<Texture2D>("resources/gem");
-			heartTexture = Content.Load<Texture2D>("resources/heart");
-            halfHeartTexture = Content.Load<Texture2D>("resources/halfheart");
-            emptyHeartTexture = Content.Load<Texture2D>("resources/emptyheart");
-            //TODO: Change how all these textures get loaded
-            gameLevel = new Level(camera, spriteBatch, tileTexture, passthroughTileTexture, enemyTexture, gemTexture, 30, 20);
-			player = new Player(playerTexture, new Vector2(80, 80), spriteBatch);
-			healthBar = new HealthBar(spriteBatch, player.health, heartTexture, halfHeartTexture, emptyHeartTexture);
+            gameLevel = new Level(camera, spriteBatch, 30, 20);
+			player = new Player(TextureFactory.Instance.getTexture(Texture.Player), new Vector2(80, 80), spriteBatch);
+			healthBar = new HealthBar(spriteBatch, player.health);
 		}
+
+        private void SetUpTextureFactory()
+        {
+            textureFactory = TextureFactory.Instance;
+            textureFactory.SetTextureRenderer(this);
+            textureFactory.AddTextures();
+        }
 
 		/// <summary>
 		/// Allows the game to run logic such as updating the world,
@@ -167,7 +166,6 @@ namespace MonoGameDemo
 			base.Draw(gameTime);
 			gameLevel.Draw();
 			player.Draw();
-
 			spriteBatch.End();
 
 			spriteBatch.Begin();

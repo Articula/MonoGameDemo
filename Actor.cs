@@ -8,6 +8,7 @@ namespace MonoGameDemo
 	{
 		public Vector2 movement { get; set; }
 		public Vector2 oldPosition; //Change this back to protected if you're updating collision and not generating structs
+        public int speed = 12;
 
 		public Actor(Texture2D texture, Vector2 position, SpriteBatch batch) : base(texture, position, batch)
 		{
@@ -45,7 +46,7 @@ namespace MonoGameDemo
 		private void UpdatePositionBasedOnMovement(GameTime gameTime)
 		{
 			//Smoothes out movement, adjust /12 for speed adjustment
-			position += movement * (float)gameTime.ElapsedGameTime.TotalMilliseconds / 12;
+			position += movement * (float)gameTime.ElapsedGameTime.TotalMilliseconds / speed;
 		}
 
 		private void StopMovingIfBlocked()

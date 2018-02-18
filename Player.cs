@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Timers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace MonoGameDemo
 {
@@ -11,6 +9,7 @@ namespace MonoGameDemo
 		public int health = 6;
 		public Inventory inventory;
 		public bool invulnerableFlag = false;
+        private bool flashing = false;
 		private const int DefaultInvulnerableTime = 3;
 		private TimeSpan invulnerableTimeRemaining = new TimeSpan();
 		private bool leftPressed = false;
@@ -81,6 +80,21 @@ namespace MonoGameDemo
 			base.Update(gameTime);
 		}
 
+        public override void Draw()
+        {
+            if (invulnerableFlag)
+            {
+                flashing = flashing ? false : true;
+            } else {
+                if (flashing) flashing = false;
+            }
+
+            if (!flashing)
+            {
+                base.Draw();
+            }
+        }
+
 		public bool IsOnFirmGround()
 		{
 			Rectangle onePixelLower = boundry;
@@ -90,7 +104,7 @@ namespace MonoGameDemo
 
 		public void AddToInventory(ICollectable item)
 		{
-			this.inventory.add(item);
+			inventory.add(item);
 		}
 
 		private void CheckMovementFlagsAndUpdate()

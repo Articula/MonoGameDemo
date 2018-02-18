@@ -33,10 +33,10 @@ namespace MonoGameDemo
             this.columns = columns;
 			this.rows = rows;
 			this.spriteBatch = spriteBatch;
-            this.tileQuadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
-            this.actorQuadTree = new QuadTree<IQuadStorable>(0, 0, 1920, 1280); //TODO: Clean Magic Numbers!!
+            tileQuadTree = new QuadTree<IQuadStorable>(0, 0, 30 * tileTexture.Width, 20 * tileTexture.Height);
+            actorQuadTree = new QuadTree<IQuadStorable>(0, 0, 30 * tileTexture.Width, 20 * tileTexture.Height);
             CreateNewLevel();
-			Level.currentLevel = this;
+			currentLevel = this;
 		}
 
 		public void CreateNewLevel()
@@ -46,7 +46,8 @@ namespace MonoGameDemo
             InitializeTiles();
 			InitializeBorderTiles();
 			GeneratePassThroughTile();
-			SetTopLeftTileUnblocked();
+			SetTopAreaTilesUnblocked();
+            CreateEnemyLedge();
             InitializeLevelLists();
             InitializeEnemies();
 
@@ -55,7 +56,7 @@ namespace MonoGameDemo
 
 		void InitializeTiles()
 		{
-			this.tiles = new Tile[this.columns, this.rows];
+			tiles = new Tile[columns, rows];
 
 			//Generating the remaining tiles randomly for by column and row
 			for (int x = 0; x < this.columns; x++)
@@ -65,7 +66,7 @@ namespace MonoGameDemo
 					Vector2 tilePosition =
 						new Vector2(x * tileTexture.Width, y * tileTexture.Height);
                     Tile tile = new Tile(tileTexture, tilePosition, spriteBatch, rnd.Next(5) == 0);
-                    this.tiles[x, y] = tile;
+                    tiles[x, y] = tile;
                     tileQuadTree.Add(tile);
                 }
 
@@ -77,7 +78,7 @@ namespace MonoGameDemo
 				for (int y = 4; y<5; y++)
 				{
 
-					this.tiles[x, y].isVisible = true;
+					tiles[x, y].isVisible = true;
 				}
 
 			}
@@ -85,13 +86,13 @@ namespace MonoGameDemo
 
 		void InitializeBorderTiles()
 		{
-			for (int x = 0; x < this.columns; x++)
+			for (int x = 0; x < columns; x++)
 			{
-				for (int y = 0; y < this.rows; y++)
+				for (int y = 0; y < rows; y++)
 				{
-					if (x == 0 || x == (this.columns - 1) || y == 0 || y == (this.rows - 1))
+					if (x == 0 || x == (columns - 1) || y == 0 || y == (rows - 1))
 					{
-						this.tiles[x, y].isVisible = true;
+						tiles[x, y].isVisible = true;
 					}
 
 				}
@@ -104,8 +105,8 @@ namespace MonoGameDemo
 			Vector2 passthroughTilePosition =
 				new Vector2(4 * tileTexture.Width, 3 * tileTexture.Height);
             Tile tile = new Tile(passthroughTileTexture, passthroughTilePosition, spriteBatch, true, true);
-            tileQuadTree.Remove(this.tiles[4, 3]);
-            this.tiles[4, 3] = tile;
+            tileQuadTree.Remove(tiles[4, 3]);
+            tiles[4, 3] = tile;
             tileQuadTree.Add(tile);
 
             tiles[4, 4].isVisible = false;
@@ -113,15 +114,15 @@ namespace MonoGameDemo
 
 		void InitializeEnemies()
 		{
-            Enemy enemy = new Enemy(enemyTexture, new Vector2(240, 80), spriteBatch);
-            this.enemies.Add(enemy);
+            Enemy enemy = new Enemy(enemyTexture, new Vector2(11 * tileTexture.Width, 3 * tileTexture.Height), spriteBatch);
+            enemies.Add(enemy);
             actorQuadTree.Add(enemy);
         }
 
 		void InitializeLevelLists()
 		{
-			this.collectables = new List<ICollectable>();
-            this.enemies = new List<Enemy>();
+			collectables = new List<ICollectable>();
+            enemies = new List<Enemy>();
 		}
 
 		//TODO: Remove this after testing
@@ -155,12 +156,37 @@ namespace MonoGameDemo
             }
         }
 
-		private void SetTopLeftTileUnblocked()
+		private void SetTopAreaTilesUnblocked()
 		{
-			tiles[1, 1].isVisible = false;
+            for (int i = 1; i < 3; i++)
+            {
+                for (int j = 1; j < 3; j++)
+                {
+                    tiles[i, j].isVisible = false;
+                }
+            }
 		}
 
-		public void Draw()
+        private void CreateEnemyLedge()
+        {
+            for (int i = 6; i < 13; i++)
+            {
+                tiles[i, 2].isVisible = false;
+            }
+            tiles[6, 3].isVisible = true;
+            tiles[7, 3].isVisible = false;
+            tiles[8, 3].isVisible = false;
+            tiles[9, 3].isVisible = false;
+            tiles[10, 3].isVisible = false;
+            tiles[11, 3].isVisible = false;
+            tiles[12, 3].isVisible = true;
+            for (int i = 6; i < 13; i++)
+            {
+                tiles[i, 4].isVisible = true;
+            }
+        }
+
+        public void Draw()
 		{
             // Get all QuadTree items in camera coordinates
             List<IQuadStorable> tilesToDraw = tileQuadTree.GetObjects(camera.GetCameraRect());
@@ -320,7 +346,7 @@ namespace MonoGameDemo
                 {
                     //Determine whether this was contact from the top (enemy kill), else take damage
                     MovementStruct move = new MovementStruct(player.oldPosition, player.position, player.boundry);
-                    if (player.boundry.Bottom == enemy.boundry.Top + 1 && !move.isMovingUp)
+                    if (player.boundry.Bottom < enemy.boundry.Top + 20 && !move.isMovingUp)
                     {
                         enemy.isVisible = false;
                         enemies.Remove(enemy);

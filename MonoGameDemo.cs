@@ -124,6 +124,7 @@ namespace MonoGameDemo
 			PositionPlayer();
 			player.health = 3;
 			healthBar.Reset();
+            player.inventory.gemCount = 0;
 		}
 
 		private void HandleMenuButton()

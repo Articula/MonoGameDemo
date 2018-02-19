@@ -11,6 +11,8 @@ namespace MonoGameDemo
 		public List<Enemy> enemies;
         public List<ICollectable> collectables;
 
+        public event EventHandler<HealthChangeEventArgs> HealthChangeEvent;
+
         public int columns;
 		public int rows;
 		public Texture2D tileTexture = TextureFactory.Instance.getTexture(Texture.Tile);
@@ -19,13 +21,11 @@ namespace MonoGameDemo
         public Texture2D gemTexture = TextureFactory.Instance.getTexture(Texture.Gem);
 		public SpriteBatch spriteBatch;
 		public static Level currentLevel { get; private set; }
+
 		private Random rnd = new Random();
         private Camera camera;
-
         private QuadTree<IQuadStorable> tileQuadTree;
         private QuadTree<IQuadStorable> actorQuadTree;
-
-        public event EventHandler<HealthChangeEventArgs> HealthChangeEvent;
 
 		public Level(Camera levelCamera, SpriteBatch spriteBatch, int columns, int rows)
 		{
@@ -33,8 +33,8 @@ namespace MonoGameDemo
             this.columns = columns;
 			this.rows = rows;
 			this.spriteBatch = spriteBatch;
-            tileQuadTree = new QuadTree<IQuadStorable>(0, 0, 30 * tileTexture.Width, 20 * tileTexture.Height);
-            actorQuadTree = new QuadTree<IQuadStorable>(0, 0, 30 * tileTexture.Width, 20 * tileTexture.Height);
+            tileQuadTree = new QuadTree<IQuadStorable>(0, 0, columns * tileTexture.Width, rows * tileTexture.Height);
+            actorQuadTree = new QuadTree<IQuadStorable>(0, 0, columns * tileTexture.Width, rows * tileTexture.Height);
             CreateNewLevel();
 			currentLevel = this;
 		}
@@ -59,7 +59,7 @@ namespace MonoGameDemo
 			tiles = new Tile[columns, rows];
 
 			//Generating the remaining tiles randomly for by column and row
-			for (int x = 0; x < this.columns; x++)
+			for (int x = 0; x < columns; x++)
 			{
 				for (int y = 0; y < rows; y++)
 				{
@@ -125,7 +125,6 @@ namespace MonoGameDemo
             enemies = new List<Enemy>();
 		}
 
-		//TODO: Remove this after testing
 		void SetGems()
 		{
             for (int i = 8; i < 19; i++)
@@ -145,10 +144,10 @@ namespace MonoGameDemo
             Vector2 gem4Position =
                         new Vector2(17 * tileTexture.Width, 8 * tileTexture.Height);
 
-            this.collectables.Add(new Gem(gemTexture, gem1Position, spriteBatch));
-            this.collectables.Add(new Gem(gemTexture, gem2Position, spriteBatch));
-            this.collectables.Add(new Gem(gemTexture, gem3Position, spriteBatch));
-            this.collectables.Add(new Gem(gemTexture, gem4Position, spriteBatch));
+            collectables.Add(new Gem(gemTexture, gem1Position, spriteBatch));
+            collectables.Add(new Gem(gemTexture, gem2Position, spriteBatch));
+            collectables.Add(new Gem(gemTexture, gem3Position, spriteBatch));
+            collectables.Add(new Gem(gemTexture, gem4Position, spriteBatch));
 
             for (int i = 0; i < collectables.Count; i++)
             {
@@ -211,18 +210,18 @@ namespace MonoGameDemo
 
 		public void Update(GameTime gameTime)
 		{
-			foreach (var enemy in this.enemies)
+			foreach (var enemy in enemies)
 			{
 				enemy.Update(gameTime);
 			}
 
-			foreach (var collectable in this.collectables)
+			foreach (var collectable in collectables)
 			{
 				if (collectable.GetType() == typeof(Gem))
 				{
 					((Gem)collectable).Update(gameTime);
 
-                    //TODO: Only do this is the Gem has actually moved
+                    //TODO: Only do this if the Gem has actually moved
                     actorQuadTree.Move((IQuadStorable)collectable);
                 }
 			}
@@ -356,7 +355,7 @@ namespace MonoGameDemo
                     {
                         if (!player.invulnerableFlag)
                         {
-                            this.HealthChangeEvent.Invoke(this, new HealthChangeEventArgs(false, 1));
+                            HealthChangeEvent.Invoke(this, new HealthChangeEventArgs(false, 1));
                         }
                     }
                 }

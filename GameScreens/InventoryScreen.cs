@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoGameDemo
@@ -35,7 +34,7 @@ namespace MonoGameDemo
 		{
 			// Draw a fancy purple rectangle.  
 			spriteBatch.Draw(pixel, new Rectangle(330, 170, 300, 300), Color.Purple);
-			spriteBatch.DrawString(this.font, "Pause", new Vector2(460, 315), Color.White);
+			spriteBatch.DrawString(font, "Pause", new Vector2(460, 315), Color.White);
 		}
 	}
 }

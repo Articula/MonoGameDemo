@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -10,17 +8,17 @@ namespace MonoGameDemo
 	/// This is the main type for your game.
 	/// </summary>
 	public class MonoGameDemo : Game
-	{
-		private Vector2 screenSize;
-		private GraphicsDeviceManager graphics;
-		private SpriteBatch spriteBatch;
-        private TextureFactory textureFactory;
-		private Camera camera;
-		private Player player;
+    { 
 		public Level gameLevel;
 		public HealthBar healthBar;
 		public InventoryScreen inventoryScreen;
-		private SpriteFont _debugFont;
+        private Vector2 screenSize;
+        private GraphicsDeviceManager graphics;
+        private SpriteBatch spriteBatch;
+        private TextureFactory textureFactory;
+        private Camera camera;
+        private Player player;
+        private SpriteFont _debugFont;
 		private bool isMenuActive;
 
 		public MonoGameDemo()
@@ -173,7 +171,7 @@ namespace MonoGameDemo
 			//Debug Text
 			WriteDebugInformation();
 			healthBar.Draw();
-			if (this.isMenuActive) { inventoryScreen.Draw(); }
+			if (isMenuActive) { inventoryScreen.Draw(); }
 			spriteBatch.End();
 		}
 
@@ -183,7 +181,7 @@ namespace MonoGameDemo
 			string movementInText = string.Format("Current movement: ({0:0.0}, {1:0.0})", player.movement.X, player.movement.Y);
 			string isOnFirmGroundText = string.Format("On firm ground: {0}", player.IsOnFirmGround());
 			string GemCountText = string.Format("Gems: {0}", player.inventory.gemCount);
-			string PauseText = string.Format("Pause Active: {0}", this.isMenuActive);
+			string PauseText = string.Format("Pause Active: {0}", isMenuActive);
 			string invulnerabilityText = string.Format("Invulnerable: {0}", player.invulnerableFlag);
 
 			spriteBatch.DrawString(_debugFont, positionInText, new Vector2(10, 0), Color.White);

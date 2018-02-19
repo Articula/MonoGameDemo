@@ -58,11 +58,11 @@ namespace MonoGameDemo
             {
                  if (currentState.IsKeyDown(keyBinding.Value) && previousKeyboardState.IsKeyUp(keyBinding.Value))
                 {
-                    this.InputPressedEvent.Invoke(this, new InputPressedEventArgs(keyBinding.Key));
+                    InputPressedEvent.Invoke(this, new InputPressedEventArgs(keyBinding.Key));
                 }
                 else if (currentState.IsKeyUp(keyBinding.Value) && previousKeyboardState.IsKeyDown(keyBinding.Value))
                 {
-                    this.InputReleasedEvent.Invoke(this, new InputReleasedEventArgs(keyBinding.Key));
+                    InputReleasedEvent.Invoke(this, new InputReleasedEventArgs(keyBinding.Key));
                 }
 
             }
@@ -77,11 +77,11 @@ namespace MonoGameDemo
             {
                 if (currentState.IsButtonDown(buttonBinding.Value) && previousGamePadState.IsButtonUp(buttonBinding.Value))
                 {
-                    this.InputPressedEvent.Invoke(this, new InputPressedEventArgs(buttonBinding.Key));
+                    InputPressedEvent.Invoke(this, new InputPressedEventArgs(buttonBinding.Key));
                 }
                 else if (currentState.IsButtonUp(buttonBinding.Value) && previousGamePadState.IsButtonDown(buttonBinding.Value))
                 {
-                    this.InputReleasedEvent.Invoke(this, new InputReleasedEventArgs(buttonBinding.Key));
+                    InputReleasedEvent.Invoke(this, new InputReleasedEventArgs(buttonBinding.Key));
                 }
             }
             previousGamePadState = currentState;

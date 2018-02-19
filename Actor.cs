@@ -7,7 +7,7 @@ namespace MonoGameDemo
 	public class Actor : Sprite
 	{
 		public Vector2 movement { get; set; }
-		public Vector2 oldPosition; //Change this back to protected if you're updating collision and not generating structs
+		public Vector2 oldPosition;
         public int speed = 12;
 
 		public Actor(Texture2D texture, Vector2 position, SpriteBatch batch) : base(texture, position, batch)
